@@ -62,6 +62,20 @@ npm run search:web
 
 The server listens on `127.0.0.1:4318` unless `PORT` is set.
 
+## Screenshots
+
+### Automated Comment Console
+
+![Automated comment console](docs/screenshots/traffic-intercept-dashboard.png)
+
+The main console supports keyword-based TikTok/Facebook discovery, local Chrome profile selection, automated comment queue execution, stop controls, status counters, and review results.
+
+### Comment Draft Workspace
+
+![Comment draft workspace](docs/screenshots/traffic-intercept-comment-drafts.png)
+
+The draft workspace helps organize keywords, video notes, comment tone, and generated draft comments before any manual review or publishing workflow.
+
 The main web UI can run a search and then start an automated comment queue:
 
 - TikTok: starts from an entry video, opens the comment panel, replies to a top-liked comment when available, sends the main comment, and continues through the stream.
