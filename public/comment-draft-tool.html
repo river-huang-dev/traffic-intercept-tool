@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok 评论草稿工作台</title>
+  <style>
+    :root {
+      --bg: #f5efe4;
+      --panel: rgba(255, 251, 245, 0.92);
+      --ink: #1f1c1a;
+      --muted: #6e6258;
+      --accent: #b64d2d;
+      --accent-2: #244b45;
+      --line: rgba(31, 28, 26, 0.12);
+      --shadow: 0 18px 40px rgba(41, 29, 18, 0.12);
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "SF Pro Display", "PingFang SC", "Hiragino Sans GB", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(182, 77, 45, 0.16), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(36, 75, 69, 0.18), transparent 28%),
+        linear-gradient(135deg, #f8f2e8, #efe4d3 60%, #f7f1e9);
+      min-height: 100vh;
+    }
+
+    .shell {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      margin-bottom: 16px;
+    }
+
+    .eyebrow, .hint, .stat-label {
+      color: var(--muted);
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.78rem;
+      margin-bottom: 12px;
+    }
+
+    .lead {
+      max-width: 58ch;
+      line-height: 1.6;
+      color: #3d352f;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(31, 28, 26, 0.08);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.7rem;
+      margin-bottom: 6px;
+    }
+
+    .side-note {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: linear-gradient(160deg, rgba(36, 75, 69, 0.96), rgba(17, 35, 32, 0.95));
+      color: #f7f2ea;
+    }
+
+    .side-note p {
+      line-height: 1.6;
+      color: rgba(247, 242, 234, 0.82);
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .tag {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 0.92rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 16px;
+    }
+
+    .panel-title h2 {
+      font-size: 1.2rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.92rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 15px;
+      font: inherit;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.7);
+      outline: none;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: rgba(182, 77, 45, 0.65);
+      transform: translateY(-1px);
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: var(--accent);
+      color: #fff7f0;
+      box-shadow: 0 12px 22px rgba(182, 77, 45, 0.24);
+    }
+
+    .secondary {
+      background: rgba(36, 75, 69, 0.12);
+      color: var(--accent-2);
+    }
+
+    .result-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .pill {
+      font-size: 0.9rem;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.65);
+    }
+
+    .results {
+      display: grid;
+      gap: 14px;
+    }
+
+    .draft {
+      border: 1px solid rgba(31, 28, 26, 0.08);
+      border-radius: 20px;
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.74);
+      animation: rise 0.28s ease;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .draft-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .draft-text {
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 14px;
+      white-space: pre-wrap;
+    }
+
+    .draft-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .draft-actions button {
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .mono {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+      font-size: 0.88rem;
+    }
+
+    .empty {
+      padding: 34px 20px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed rgba(31, 28, 26, 0.14);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      line-height: 1.6;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 980px) {
+      .hero, .layout, .grid-2, .actions {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <article class="card">
+        <div class="eyebrow">Comment Draft Workspace</div>
+        <h1>关键词整理 + 评论草稿</h1>
+        <p class="lead">
+          这个页面只做人工辅助：整理关键词、记录视频、生成多样化评论草稿，方便你逐条审核和手动发送。
+        </p>
+        <div class="stats">
+          <div class="stat">
+            <strong id="statKeywords">0</strong>
+            <span class="stat-label">识别关键词</span>
+          </div>
+          <div class="stat">
+            <strong id="statVideos">0</strong>
+            <span class="stat-label">视频条目</span>
+          </div>
+          <div class="stat">
+            <strong id="statDrafts">0</strong>
+            <span class="stat-label">评论草稿</span>
+          </div>
+        </div>
+      </article>
+
+      <aside class="card side-note">
+        <div>
+          <h2>使用建议</h2>
+          <p>
+            先输入关键词和视频信息，再选语气与每条视频生成数量。页面会把内容按“视频 + 评论”组合展开，你可以复制、导出或二次改写。
+          </p>
+        </div>
+        <div class="tag-row">
+          <span class="tag">人工确认</span>
+          <span class="tag">避免重复表达</span>
+          <span class="tag">本地运行</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="layout">
+      <article class="card">
+        <div class="panel-title">
+          <h2>输入区</h2>
+          <span class="hint">多行粘贴即可</span>
+        </div>
+
+        <div class="field">
+          <label for="keywords">关键词</label>
+          <input id="keywords" placeholder="例如：travel vlog, skincare, street food">
+        </div>
+
+        <div class="field">
+          <label for="baseIdea">评论核心方向</label>
+          <textarea id="baseIdea" placeholder="例如：想表达真诚夸赞、轻度互动、顺着视频内容提问。"></textarea>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="tone">语气</label>
+            <select id="tone">
+              <option value="friendly">自然友好</option>
+              <option value="curious">轻提问</option>
+              <option value="supportive">支持夸赞</option>
+              <option value="playful">轻松口语</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="perVideo">每条视频生成数</label>
+            <select id="perVideo">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="8">8</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="videos">视频列表</label>
+          <textarea id="videos" class="mono" placeholder="每行一条，格式：标题 | 链接 | 备注&#10;例如：Tokyo cafe vlog | https://example.com/video1 | 咖啡店氛围很好"></textarea>
+        </div>
+
+        <div class="actions">
+          <button class="primary" id="generateBtn">生成评论草稿</button>
+          <button class="secondary" id="loadDemoBtn">填充示例数据</button>
+          <button class="secondary" id="exportBtn">导出 CSV</button>
+          <button class="secondary" id="clearBtn">清空页面</button>
+        </div>
+
+        <p class="footer-note">
+          说明：这里不会自动打开 TikTok、不会自动搜索、不会自动发送评论。它只是把你的素材整理成更方便人工执行的工作台。
+        </p>
+      </article>
+
+      <article class="card">
+        <div class="panel-title">
+          <h2>结果区</h2>
+          <span class="hint" id="statusText">等待生成</span>
+        </div>
+
+        <div class="result-toolbar">
+          <span class="pill" id="keywordPreview">关键词：-</span>
+          <span class="pill" id="tonePreview">语气：-</span>
+          <span class="pill" id="videoPreview">视频：0</span>
+        </div>
+
+        <div id="results" class="results">
+          <div class="empty">
+            生成后会在这里列出评论草稿。每条草稿都支持单独复制。
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const tonePresets = {
+      friendly: [
+        "这个内容看着很舒服，{focus} 这点一下就抓住我了。",
+        "刷到这里停下来了，{focus} 的感觉很自然。",
+        "这条做得真不错，尤其是 {focus}，很加分。",
+        "这种分享方式我会愿意看完，{focus} 很有记忆点。",
+        "这段内容挺有感觉，{focus} 让整条视频更完整了。"
+      ],
+      curious: [
+        "这个角度很有意思，{focus} 是你特意设计的吗？",
+        "有点想知道，{focus} 这部分你是怎么想到的？",
+        "看到这里很好奇，{focus} 背后有没有更多故事？",
+        "这条挺吸引人的，{focus} 这里还有后续吗？",
+        "想继续看类似内容，{focus} 这种方向你会多拍一点吗？"
+      ],
+      supportive: [
+        "这条质量真的在线，{focus} 一看就很用心。",
+        "能感觉到你花了心思，{focus} 这块尤其打动人。",
+        "整体很顺，{focus} 让内容更有层次。",
+        "这种表达挺有感染力，{focus} 很容易让人记住。",
+        "支持这种认真做内容的状态，{focus} 很出彩。"
+      ],
+      playful: [
+        "这条我会反复看，{focus} 也太会拿捏了。",
+        "本来随便刷刷，结果被 {focus} 直接留住了。",
+        "这个节奏感不错，{focus} 有点上头。",
+        "说真的，{focus} 这里一下就把氛围拉满了。",
+        "这条挺会拍的，{focus} 给人的感觉很顺。"
+      ]
+    };
+
+    const detailStarters = [
+      "如果要补一句，我会说",
+      "再延展一点可以写成",
+      "换个更口语的版本就是",
+      "如果想更自然一点，可以改成",
+      "另一个不重复的表达是"
+    ];
+
+    const els = {
+      keywords: document.getElementById("keywords"),
+      baseIdea: document.getElementById("baseIdea"),
+      tone: document.getElementById("tone"),
+      perVideo: document.getElementById("perVideo"),
+      videos: document.getElementById("videos"),
+      generateBtn: document.getElementById("generateBtn"),
+      loadDemoBtn: document.getElementById("loadDemoBtn"),
+      exportBtn: document.getElementById("exportBtn"),
+      clearBtn: document.getElementById("clearBtn"),
+      results: document.getElementById("results"),
+      statusText: document.getElementById("statusText"),
+      keywordPreview: document.getElementById("keywordPreview"),
+      tonePreview: document.getElementById("tonePreview"),
+      videoPreview: document.getElementById("videoPreview"),
+      statKeywords: document.getElementById("statKeywords"),
+      statVideos: document.getElementById("statVideos"),
+      statDrafts: document.getElementById("statDrafts")
+    };
+
+    let lastDrafts = [];
+
+    function splitKeywords(raw) {
+      return raw
+        .split(/[,\n]/)
+        .map(item => item.trim())
+        .filter(Boolean);
+    }
+
+    function parseVideos(raw) {
+      return raw
+        .split("\n")
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map((line, index) => {
+          const [title = "", url = "", note = ""] = line.split("|").map(item => item.trim());
+          return {
+            id: index + 1,
+            title: title || `未命名视频 ${index + 1}`,
+            url,
+            note
+          };
+        });
+    }
+
+    function pickFocus(video, keywords, idea, index) {
+      const options = [
+        video.note,
+        video.title,
+        keywords[index % Math.max(keywords.length, 1)],
+        idea.split(/[，。,.]/).map(item => item.trim()).filter(Boolean)[0]
+      ].filter(Boolean);
+      return options[0] || "这个细节";
+    }
+
+    function buildDraftText(base, focus, idea, index) {
+      const starter = detailStarters[index % detailStarters.length];
+      if (!idea) {
+        return base.replace("{focus}", focus);
+      }
+      return `${base.replace("{focus}", focus)} ${starter}：“${idea.replace(/[。]+$/g, "")}。”`;
+    }
+
+    function generateDrafts() {
+      const keywords = splitKeywords(els.keywords.value);
+      const idea = els.baseIdea.value.trim();
+      const tone = els.tone.value;
+      const perVideo = Number(els.perVideo.value);
+      const videos = parseVideos(els.videos.value);
+      const templates = tonePresets[tone];
+
+      els.statKeywords.textContent = keywords.length;
+      els.statVideos.textContent = videos.length;
+      els.keywordPreview.textContent = `关键词：${keywords.join(" / ") || "-"}`;
+      els.tonePreview.textContent = `语气：${els.tone.options[els.tone.selectedIndex].text}`;
+      els.videoPreview.textContent = `视频：${videos.length}`;
+
+      if (!videos.length) {
+        els.results.innerHTML = '<div class="empty">先在“视频列表”里至少填一行内容。</div>';
+        els.statusText.textContent = "缺少视频数据";
+        els.statDrafts.textContent = "0";
+        lastDrafts = [];
+        return;
+      }
+
+      const drafts = [];
+
+      videos.forEach((video, videoIndex) => {
+        for (let i = 0; i < perVideo; i += 1) {
+          const template = templates[i % templates.length];
+          const focus = pickFocus(video, keywords, idea, videoIndex + i);
+          drafts.push({
+            id: `${video.id}-${i + 1}`,
+            title: video.title,
+            url: video.url,
+            note: video.note,
+            text: buildDraftText(template, focus, idea, i),
+            tone: els.tone.options[els.tone.selectedIndex].text
+          });
+        }
+      });
+
+      lastDrafts = drafts;
+      els.statDrafts.textContent = drafts.length;
+      els.statusText.textContent = `已生成 ${drafts.length} 条草稿`;
+      renderDrafts(drafts);
+    }
+
+    function renderDrafts(drafts) {
+      els.results.innerHTML = "";
+      drafts.forEach(draft => {
+        const card = document.createElement("section");
+        card.className = "draft";
+        card.innerHTML = `
+          <div class="draft-head">
+            <span>视频 ${draft.id} · ${escapeHtml(draft.title)}</span>
+            <span>${escapeHtml(draft.tone)}</span>
+          </div>
+          <div class="draft-text">${escapeHtml(draft.text)}</div>
+          <div class="draft-actions">
+            <button class="secondary" data-copy="${encodeURIComponent(draft.text)}">复制评论</button>
+            <button class="secondary" data-copy="${encodeURIComponent([draft.title, draft.url, draft.note, draft.text].join("\n"))}">复制整条记录</button>
+          </div>
+        `;
+        els.results.appendChild(card);
+      });
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        els.statusText.textContent = "已复制到剪贴板";
+      } catch {
+        els.statusText.textContent = "复制失败，请手动复制";
+      }
+    }
+
+    function exportCsv() {
+      if (!lastDrafts.length) {
+        els.statusText.textContent = "没有可导出的草稿";
+        return;
+      }
+
+      const rows = [
+        ["video_title", "video_url", "video_note", "tone", "draft_text"],
+        ...lastDrafts.map(item => [item.title, item.url, item.note, item.tone, item.text])
+      ];
+      const csv = rows
+        .map(row => row.map(cell => `"${String(cell || "").replaceAll('"', '""')}"`).join(","))
+        .join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "tiktok_comment_drafts.csv";
+      link.click();
+      URL.revokeObjectURL(link.href);
+      els.statusText.textContent = "CSV 已导出";
+    }
+
+    function loadDemo() {
+      els.keywords.value = "travel vlog, city walk, coffee";
+      els.baseIdea.value = "想表达真诚夸赞，同时顺着画面内容轻轻互动，不要太夸张。";
+      els.tone.value = "friendly";
+      els.perVideo.value = "5";
+      els.videos.value = [
+        "Morning walk in Tokyo | https://example.com/video-1 | 街景和转场很舒服",
+        "Hidden cafe in Seoul | https://example.com/video-2 | 咖啡馆氛围感强",
+        "Weekend food diary | https://example.com/video-3 | 食物特写很有食欲"
+      ].join("\n");
+      generateDrafts();
+    }
+
+    function clearAll() {
+      els.keywords.value = "";
+      els.baseIdea.value = "";
+      els.tone.value = "friendly";
+      els.perVideo.value = "5";
+      els.videos.value = "";
+      els.results.innerHTML = '<div class="empty">生成后会在这里列出评论草稿。每条草稿都支持单独复制。</div>';
+      els.statusText.textContent = "已清空";
+      els.keywordPreview.textContent = "关键词：-";
+      els.tonePreview.textContent = "语气：-";
+      els.videoPreview.textContent = "视频：0";
+      els.statKeywords.textContent = "0";
+      els.statVideos.textContent = "0";
+      els.statDrafts.textContent = "0";
+      lastDrafts = [];
+    }
+
+    els.generateBtn.addEventListener("click", generateDrafts);
+    els.loadDemoBtn.addEventListener("click", loadDemo);
+    els.exportBtn.addEventListener("click", exportCsv);
+    els.clearBtn.addEventListener("click", clearAll);
+
+    els.results.addEventListener("click", event => {
+      const button = event.target.closest("button[data-copy]");
+      if (!button) return;
+      copyText(decodeURIComponent(button.dataset.copy));
+    });
+  </script>
+</body>
+</html>

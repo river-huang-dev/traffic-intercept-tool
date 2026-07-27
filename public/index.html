@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>短视频渠道执行工具</title>
+  <style>
+    :root {
+      --bg: #05070c;
+      --panel: rgba(11, 18, 30, 0.88);
+      --panel-dark: rgba(7, 12, 22, 0.96);
+      --ink: #eef7ff;
+      --muted: #8295ad;
+      --line: rgba(94, 217, 255, 0.18);
+      --line-strong: rgba(94, 217, 255, 0.42);
+      --cyan: #5ed9ff;
+      --green: #54ffb3;
+      --amber: #ffd166;
+      --red: #ff4d6d;
+      --violet: #9c8cff;
+      --shadow: 0 24px 90px rgba(0, 0, 0, 0.48);
+      --radius: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: ui-sans-serif, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        linear-gradient(rgba(94, 217, 255, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(94, 217, 255, 0.045) 1px, transparent 1px),
+        radial-gradient(circle at 14% 10%, rgba(94, 217, 255, 0.22), transparent 30rem),
+        radial-gradient(circle at 88% 4%, rgba(84, 255, 179, 0.16), transparent 26rem),
+        linear-gradient(135deg, #05070c, #09111d 54%, #03050a);
+      background-size: 34px 34px, 34px 34px, auto, auto, auto;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 18%),
+        radial-gradient(circle at 50% 0%, rgba(94, 217, 255, 0.12), transparent 34rem);
+      mix-blend-mode: screen;
+      opacity: 0.78;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 4px);
+      opacity: 0.18;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.58;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .app {
+      width: min(1240px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 34px 0;
+      display: grid;
+      gap: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: 30px;
+      padding: 26px;
+      color: var(--ink);
+      background:
+        linear-gradient(120deg, rgba(94, 217, 255, 0.16), transparent 48%),
+        linear-gradient(270deg, rgba(84, 255, 179, 0.08), transparent 52%),
+        rgba(11, 18, 30, 0.72);
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        linear-gradient(90deg, transparent, rgba(94, 217, 255, 0.22), transparent),
+        linear-gradient(135deg, transparent 0 48%, rgba(84, 255, 179, 0.09) 49% 51%, transparent 52%);
+      transform: translateX(-65%);
+      animation: sweep 6s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.7rem, 3vw, 3.15rem);
+      letter-spacing: -0.04em;
+      text-shadow: 0 0 24px rgba(94, 217, 255, 0.18);
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .status-pill {
+      position: relative;
+      min-width: 132px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border-radius: 999px;
+      color: #031017;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      font-weight: 800;
+      box-shadow: 0 0 28px rgba(94, 217, 255, 0.28);
+      z-index: 1;
+    }
+
+    .status-pill::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    .panel {
+      position: relative;
+      border-radius: var(--radius);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 34%),
+        radial-gradient(circle at 0% 0%, rgba(94, 217, 255, 0.11), transparent 22rem);
+    }
+
+    .control-panel {
+      position: relative;
+      z-index: 1;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: minmax(160px, 0.6fr) minmax(170px, 0.55fr) minmax(220px, 1.1fr) minmax(220px, 1fr) auto;
+      gap: 14px;
+      align-items: end;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      outline: none;
+      padding: 0 14px;
+      color: var(--ink);
+      background: rgba(3, 7, 13, 0.72);
+      color-scheme: dark;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 4px rgba(94, 217, 255, 0.12);
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      min-height: 18px;
+      padding: 0;
+      accent-color: var(--cyan);
+      box-shadow: 0 0 12px rgba(94, 217, 255, 0.18);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 128px 112px 96px;
+      gap: 10px;
+    }
+
+    .btn {
+      min-height: 48px;
+      border-radius: 14px;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.06);
+      font-weight: 900;
+      transition: transform 0.16s ease, filter 0.16s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.04);
+    }
+
+    .btn-primary {
+      color: #031017;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      box-shadow: 0 0 24px rgba(94, 217, 255, 0.2);
+    }
+
+    .btn-danger {
+      border-color: transparent;
+      background: linear-gradient(135deg, #ff4d6d, #ff7b9a);
+    }
+
+    .run-options {
+      position: relative;
+      z-index: 1;
+      padding: 0 20px 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .run-note {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 209, 102, 0.24);
+      background: rgba(255, 209, 102, 0.08);
+      color: var(--amber);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 11px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(94, 217, 255, 0.08);
+      box-shadow: inset 0 0 18px rgba(94, 217, 255, 0.04);
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
+    }
+
+    .metric {
+      position: relative;
+      overflow: hidden;
+      padding: 18px;
+      border-radius: var(--radius);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .metric::after {
+      content: "";
+      position: absolute;
+      right: -38px;
+      top: -52px;
+      width: 112px;
+      height: 112px;
+      border-radius: 999px;
+      background: rgba(94, 217, 255, 0.1);
+      filter: blur(4px);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .metric strong {
+      display: block;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+      font-size: 1.65rem;
+      letter-spacing: -0.04em;
+      color: var(--green);
+      text-shadow: 0 0 18px rgba(84, 255, 179, 0.24);
+    }
+
+    .workbench {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .list-panel {
+      position: relative;
+      z-index: 1;
+      padding: 20px;
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      font-size: 1.12rem;
+      letter-spacing: -0.02em;
+    }
+
+    .panel-title span {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .status-box {
+      margin-bottom: 14px;
+      padding: 14px;
+      border-radius: 16px;
+      color: var(--ink);
+      border: 1px solid rgba(84, 255, 179, 0.22);
+      background:
+        linear-gradient(90deg, rgba(84, 255, 179, 0.1), transparent 54%),
+        rgba(3, 7, 13, 0.52);
+      line-height: 1.55;
+      box-shadow: inset 0 0 30px rgba(84, 255, 179, 0.035);
+    }
+
+    .results {
+      display: grid;
+      gap: 10px;
+    }
+
+    .result-card {
+      position: relative;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(3, 7, 13, 0.54);
+      overflow: hidden;
+      transition: border-color 0.16s ease, transform 0.16s ease;
+    }
+
+    .result-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--cyan), var(--green));
+    }
+
+    .result-card:hover {
+      border-color: var(--line-strong);
+      transform: translateY(-1px);
+    }
+
+    .result-card h3 {
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+    }
+
+    .result-card p {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .result-card a {
+      color: var(--cyan);
+      word-break: break-all;
+      text-decoration: none;
+      font-size: 0.88rem;
+    }
+
+    .empty {
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 28px;
+      border: 1px dashed rgba(94, 217, 255, 0.28);
+      border-radius: 18px;
+      color: var(--muted);
+      background:
+        repeating-linear-gradient(-45deg, rgba(94, 217, 255, 0.045) 0 10px, transparent 10px 20px),
+        rgba(3, 7, 13, 0.48);
+    }
+
+    .side-panel {
+      position: relative;
+      z-index: 1;
+      padding: 20px;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(94, 217, 255, 0.12), transparent 60%),
+        var(--panel-dark);
+    }
+
+    .side-panel h2 {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+    }
+
+    .side-copy {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.92rem;
+    }
+
+    .step {
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.92rem;
+    }
+
+    .draft-panel {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(156, 140, 255, 0.22);
+      background:
+        linear-gradient(180deg, rgba(156, 140, 255, 0.09), transparent 58%),
+        rgba(3, 7, 13, 0.52);
+    }
+
+    .draft-panel h3 {
+      margin: 0 0 8px;
+      font-size: 0.94rem;
+    }
+
+    .draft-panel p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.88rem;
+    }
+
+    .draft-text {
+      margin: 0;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(94, 217, 255, 0.14);
+      background: rgba(3, 7, 13, 0.6);
+      color: var(--ink);
+      line-height: 1.6;
+      font-size: 0.86rem;
+      word-break: break-word;
+    }
+
+    @keyframes sweep {
+      0%, 45% {
+        transform: translateX(-70%);
+        opacity: 0;
+      }
+      55% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(70%);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .hero, .control-panel, .workbench {
+        grid-template-columns: 1fr;
+      }
+
+      .actions, .summary {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .app {
+        width: min(100% - 20px, 1240px);
+        padding: 18px 0;
+      }
+
+      .actions, .summary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div>
+        <h1>短视频渠道执行工具</h1>
+        <p>当前支持 TikTok 和 Facebook 两个渠道。TikTok、Facebook Reel 和 Facebook 普通帖子都支持连续执行自动评论。</p>
+      </div>
+      <div class="status-pill" id="statusHint">等待运行</div>
+    </section>
+
+    <section class="panel">
+      <div class="control-panel">
+        <div class="field">
+          <label for="channel">渠道</label>
+          <select id="channel">
+            <option value="tiktok" selected>TikTok</option>
+            <option value="facebook">Facebook</option>
+          </select>
+        </div>
+        <div class="field" id="facebookContentTypeField">
+          <label for="facebookContentType">Facebook 类型</label>
+          <select id="facebookContentType">
+            <option value="post" selected>普通帖子</option>
+            <option value="reel">Reel</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="keyword">搜索关键词</label>
+          <select id="keyword"></select>
+        </div>
+        <div class="field">
+          <label for="chromeProfile">Chrome 登录态</label>
+          <select id="chromeProfile">
+            <option value="">正在读取本机 Chrome profiles...</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="searchBtn">运行</button>
+          <button class="btn btn-danger" id="stopBtn">停止</button>
+          <button class="btn" id="clearBtn">清空</button>
+        </div>
+      </div>
+      <div class="run-options">
+        <label class="toggle" for="headed">
+          <input type="checkbox" id="headed" checked>
+          显示真实浏览器窗口
+        </label>
+        <span>TikTok 和 Facebook Reel 入口只取第 1 条并继续队列执行；Facebook 普通帖子会在搜索列表页下滑收集多条帖子。</span>
+        <span class="run-note">Facebook 普通帖子默认执行 10 条；Facebook Reel 和 TikTok 一样持续执行，Reel 切换失败时会按关键词池自动换主题。</span>
+      </div>
+    </section>
+
+    <section class="summary">
+      <div class="metric">
+        <span>已发送评论</span>
+        <strong id="statCount">0</strong>
+      </div>
+      <div class="metric">
+        <span>队列进度</span>
+        <strong id="statProgress">0/100000</strong>
+      </div>
+      <div class="metric">
+        <span>失败视频</span>
+        <strong id="statFailed">0</strong>
+      </div>
+      <div class="metric">
+        <span>跳过视频</span>
+        <strong id="statSkipped">0</strong>
+      </div>
+      <div class="metric">
+        <span>队列状态</span>
+        <strong id="statStatus">idle</strong>
+      </div>
+      <div class="metric">
+        <span>当前关键词</span>
+        <strong id="statKeyword">-</strong>
+      </div>
+    </section>
+
+    <section class="workbench">
+      <article class="panel list-panel">
+        <div class="panel-title">
+          <h2>已完成发送的视频</h2>
+          <span id="countPill">0 条</span>
+        </div>
+        <div class="status-box" id="statusBody">任务启动后，这里会显示当前视频和执行状态。</div>
+        <div class="results" id="results">
+          <div class="empty">还没有结果。点击“运行”后，每完成一条自动评论发送，这里会新增视频链接和状态。</div>
+        </div>
+      </article>
+
+      <aside class="panel side-panel">
+        <h2>业务流程</h2>
+        <p class="side-copy">当前分成三种执行模式：TikTok 连续视频流、Facebook Reel 连续 Reels、Facebook 普通帖子列表连续执行。</p>
+        <div class="step">1. 使用选择的 Chrome Profile 登录态打开目标渠道。</div>
+        <div class="step">2. 搜索关键词并拿到视频入口。</div>
+        <div class="step">3. TikTok 和 Facebook Reel 会继续进入同页连续切换和评论发送。</div>
+        <div class="step">4. Facebook 普通帖子会在列表页下滑收集多条帖子并逐条发主评论。</div>
+        <div class="step">5. 每次执行后记录链接、状态和可用结果。</div>
+        <div class="draft-panel">
+          <h3>当前发送文案</h3>
+          <p>后端内置多条无链接的印尼语金融安全提示；每条视频执行时随机选择 1 条。</p>
+          <div class="draft-text" id="draftPreview"></div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const KEYWORD_POOL = [
+      "pinjaman online indonesia", "pinjaman cepat indonesia", "pinjaman dana tunai",
+      "aplikasi pinjaman online", "aplikasi pinjaman resmi", "pinjaman terdaftar ojk",
+      "pinjaman legal indonesia", "pinjaman pribadi", "pinjaman tanpa agunan",
+      "pinjaman dana darurat", "pinjaman kebutuhan mendesak", "pinjaman modal usaha",
+      "pinjaman usaha kecil", "pinjaman untuk karyawan", "pinjaman untuk mahasiswa",
+      "pinjaman untuk ibu rumah tangga", "pinjaman cicilan bulanan", "pinjaman tenor panjang",
+      "pinjaman tenor pendek", "pinjaman bunga rendah", "pinjaman online aman",
+      "cara pinjam uang online", "cara mengajukan pinjaman online", "cara cek pinjol legal",
+      "cara cek pinjaman ojk", "tips memilih pinjaman online", "tips mengelola cicilan",
+      "tips melunasi pinjaman", "keuangan pribadi indonesia", "literasi keuangan indonesia",
+      "dana cepat cair", "dana darurat", "dana untuk kebutuhan mendesak",
+      "solusi dana darurat", "uang cepat", "aplikasi dana tunai",
+      "pinjaman melalui aplikasi", "pinjaman lewat hp", "pinjaman dari ponsel",
+      "kredit online indonesia", "kredit tanpa agunan", "kredit digital",
+      "kredit untuk kebutuhan mendesak", "cicilan online", "cicilan aman",
+      "fintech indonesia", "fintech lending indonesia", "aplikasi fintech indonesia",
+      "platform pinjaman legal", "layanan pinjaman resmi", "pinjaman dengan syarat mudah",
+      "pinjaman proses cepat", "pengajuan pinjaman online", "simulasi pinjaman online",
+      "bandingkan pinjaman online", "review aplikasi pinjaman", "rekomendasi pinjaman legal",
+      "aplikasi keuangan indonesia", "pengelolaan uang bulanan", "anggaran rumah tangga",
+      "cara mengatur keuangan", "cara membuat dana darurat", "cara menghindari pinjol ilegal",
+      "ciri ciri pinjol ilegal", "pinjaman tanpa biaya awal", "pinjaman transparan",
+      "bunga pinjaman online", "biaya pinjaman online", "tenor pinjaman online",
+      "jatuh tempo pinjaman", "pembayaran cicilan", "pelunasan pinjaman",
+      "pinjaman untuk biaya pendidikan", "pinjaman untuk biaya kesehatan", "pinjaman untuk renovasi rumah",
+      "pinjaman untuk kebutuhan keluarga", "pinjaman untuk biaya tak terduga", "pinjaman pekerja harian",
+      "pinjaman pekerja freelance", "pinjaman untuk wirausaha", "modal usaha online",
+      "modal usaha kecil", "modal dagang", "modal jualan online",
+      "pinjaman usaha mikro", "keuangan usaha kecil", "catatan keuangan usaha",
+      "aplikasi pencatat keuangan", "edukasi keuangan", "investasi dan pinjaman",
+      "cek legalitas fintech", "ojk pinjaman online", "perlindungan data pribadi",
+      "keamanan data aplikasi", "hindari penipuan pinjaman", "waspada pinjaman ilegal",
+      "pinjaman bijak", "keuangan sehat", "rencana pembayaran utang",
+      "cara mengurangi utang", "konsultasi keuangan", "kebutuhan dana indonesia",
+    ];
+
+    const els = {
+      channel: document.getElementById("channel"),
+      facebookContentType: document.getElementById("facebookContentType"),
+      facebookContentTypeField: document.getElementById("facebookContentTypeField"),
+      keyword: document.getElementById("keyword"),
+      chromeProfile: document.getElementById("chromeProfile"),
+      headed: document.getElementById("headed"),
+      searchBtn: document.getElementById("searchBtn"),
+      stopBtn: document.getElementById("stopBtn"),
+      clearBtn: document.getElementById("clearBtn"),
+      statusHint: document.getElementById("statusHint"),
+      statusBody: document.getElementById("statusBody"),
+      results: document.getElementById("results"),
+      countPill: document.getElementById("countPill"),
+      statCount: document.getElementById("statCount"),
+      statProgress: document.getElementById("statProgress"),
+      statFailed: document.getElementById("statFailed"),
+      statSkipped: document.getElementById("statSkipped"),
+      statStatus: document.getElementById("statStatus"),
+      statKeyword: document.getElementById("statKeyword"),
+      draftPreview: document.getElementById("draftPreview"),
+    };
+
+    let availableProfiles = [];
+    let reviewPollTimer = null;
+    const streamMaxVideos = 100000;
+    const facebookPostMaxItems = 10;
+    const commentDraftPreview = "后端内置多条无链接的印尼语金融安全提示；每条视频执行时会随机选择其中 1 条。";
+
+    function escapeHtml(text) {
+      return String(text ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function formatChromeProfile(profile) {
+      if (!profile) return "-";
+      const parts = [profile.label || profile.name];
+      if (profile.userName) parts.push(profile.userName);
+      return `${parts.join(" / ")} (${profile.name})`;
+    }
+
+    function getSelectedProfile() {
+      return availableProfiles.find(profile => profile.name === els.chromeProfile.value) || null;
+    }
+
+    function findPreferredProfileName(profiles, selectedProfileName) {
+      const items = Array.isArray(profiles) ? profiles : [];
+      if (!items.length) return "";
+
+      if (selectedProfileName && items.some(profile => profile.name === selectedProfileName)) {
+        return selectedProfileName;
+      }
+
+      return items[0]?.name || "";
+    }
+
+    function renderChromeProfiles(profiles, selectedProfileName) {
+      availableProfiles = Array.isArray(profiles) ? profiles : [];
+      els.chromeProfile.innerHTML = "";
+      if (!availableProfiles.length) {
+        els.chromeProfile.innerHTML = '<option value="">未找到系统 Chrome profiles</option>';
+        return;
+      }
+      const preferredProfileName = findPreferredProfileName(availableProfiles, selectedProfileName);
+      availableProfiles.forEach(profile => {
+        const option = document.createElement("option");
+        option.value = profile.name;
+        option.textContent = formatChromeProfile(profile);
+        option.selected = profile.name === preferredProfileName;
+        els.chromeProfile.appendChild(option);
+      });
+    }
+
+    function getExecutedItems(status) {
+      return (status?.results || []).filter(item => (
+        item.ownCommentDetected ||
+        item.status === "failed" ||
+        item.status === "skipped"
+      ));
+    }
+
+    function getKeywordPool() {
+      return [...KEYWORD_POOL];
+    }
+
+    function getFacebookContentType() {
+      return String(els.facebookContentType.value || "post").trim().toLowerCase() === "reel" ? "reel" : "post";
+    }
+
+    function refreshChannelOptions() {
+      const isFacebook = String(els.channel.value || "").toLowerCase() === "facebook";
+      els.facebookContentTypeField.style.display = isFacebook ? "grid" : "none";
+    }
+
+    function renderKeywordOptions() {
+      els.keyword.innerHTML = "";
+      KEYWORD_POOL.forEach((keyword, index) => {
+        const option = document.createElement("option");
+        option.value = keyword;
+        option.textContent = keyword;
+        option.selected = index === 0;
+        els.keyword.appendChild(option);
+      });
+    }
+
+    function formatResultMessage(message) {
+      const mapping = {
+        top_liked_reply_and_main_comment_sent: "高赞回复和主评论都已发送",
+        top_liked_comment_reply_sent: "高赞评论回复已发送",
+        existing_comment_found: "已检测到相同评论",
+        main_comment_sent: "主评论已发送",
+        facebook_comment_filled: "Facebook 评论已填写",
+        facebook_comment_not_verified: "Facebook 评论发送后未校验成功",
+        facebook_comment_box_not_found: "没有找到 Facebook 评论输入框",
+        comment_send_not_ready: "评论发送未准备完成",
+        comment_flow_not_started: "评论流程未成功启动",
+        comment_panel_not_opened: "评论区没有成功打开",
+        comment_input_not_found_or_not_fillable: "没有找到可填写的评论输入框",
+        reply_and_main_comment_not_verified: "高赞回复和主评论都未校验成功",
+        top_liked_reply_not_verified: "高赞评论回复未校验成功",
+        main_comment_not_verified: "主评论发送后未校验成功",
+        comment_post_button_not_found: "没有找到 Post 发送按钮",
+        comment_post_button_disabled: "Post 发送按钮处于不可点击状态",
+        next_video_not_available: "无法切换到下一个视频",
+        next_video_left_cinema_mode: "切换下一个视频时退出了连续播放模式",
+        cinema_mode_required: "没有进入连续播放模式，无法继续滑动",
+        google_login_blocked: "Google 登录被拦截",
+        geo_blocked: "当前页面触发地区限制",
+        captcha: "遇到验证码且未能自动处理",
+        login: "TikTok 要求登录或确认访客身份",
+        open_error: "视频页面打开失败",
+        blocked: "页面被阻塞",
+        keyword_pool_exhausted: "所有候选主题都已尝试完，无法再切换新主题",
+      };
+
+      const normalized = String(message || "").trim();
+      if (!normalized) return "-";
+      if (normalized.startsWith("exception:")) {
+        return `异常：${normalized.slice("exception:".length).trim()}`;
+      }
+      return mapping[normalized] || normalized;
+    }
+
+    function setControlsRunning(running) {
+      els.searchBtn.disabled = Boolean(running);
+      els.stopBtn.disabled = !running;
+    }
+
+    function renderSearchPreview(searchResponse) {
+      const items = searchResponse?.payload?.results || searchResponse?.preview || [];
+      els.results.innerHTML = "";
+
+      if (!items.length) {
+        els.results.innerHTML = '<div class="empty">当前没有可展示的搜索结果。</div>';
+        return;
+      }
+
+      items.forEach((item, index) => {
+        const card = document.createElement("section");
+        card.className = "result-card";
+        card.innerHTML = `
+          <h3>${String(index + 1).padStart(2, "0")} · 搜索结果</h3>
+          <p>类型：${escapeHtml(item.type || "post")} · 媒体数：${escapeHtml(item.mediaCount || 0)}</p>
+          <p>标题：${escapeHtml(item.title || "-")}</p>
+          <p>作者：${escapeHtml(item.author || "-")}</p>
+          <p>摘要：${escapeHtml(item.snippet || "-")}</p>
+          <a href="${escapeHtml(item.href || "#")}" target="_blank" rel="noreferrer">${escapeHtml(item.href || "")}</a>
+        `;
+        els.results.appendChild(card);
+      });
+
+      els.countPill.textContent = `${items.length} 条`;
+      els.statCount.textContent = String(items.length);
+    }
+
+    function isFacebookCommentableHref(href) {
+      const value = String(href || "").toLowerCase();
+      return (
+        value.includes("story_fbid=") ||
+        value.includes("/posts/") ||
+        value.includes("/permalink.php") ||
+        value.includes("/videos/")
+      );
+    }
+
+    function isFacebookReelHref(href) {
+      return /facebook\.com\/reel\/\d+/i.test(String(href || ""));
+    }
+
+    function renderStatus(status) {
+      const items = getExecutedItems(status);
+      els.results.innerHTML = "";
+
+      if (!items.length) {
+        els.results.innerHTML = '<div class="empty">还没有完成自动发送的视频。队列执行成功后会自动新增。</div>';
+      } else {
+        items.forEach((item, index) => {
+          const card = document.createElement("section");
+          card.className = "result-card";
+          if (item.status === "skipped") {
+            card.innerHTML = `
+              <h3>${String(index + 1).padStart(2, "0")} · 已跳过</h3>
+              <p>状态：${escapeHtml(item.status || "-")} · 结果：${escapeHtml(formatResultMessage(item.message))}</p>
+              <a href="${escapeHtml(item.href || "#")}" target="_blank" rel="noreferrer">${escapeHtml(item.href || "")}</a>
+            `;
+          } else {
+            card.innerHTML = `
+              <h3>${String(index + 1).padStart(2, "0")} · ${item.status === "failed" ? "执行失败" : "已完成发送"}</h3>
+              <p>主题：${escapeHtml(item.keyword || status?.currentKeyword || "-")}</p>
+              <p>评论数：${escapeHtml(item.commentCount || 0)} · 状态：${escapeHtml(item.status || "-")} · 结果：${escapeHtml(formatResultMessage(item.message))}</p>
+              <p>主评论：${escapeHtml(item.mainCommentText || "-")}</p>
+              <p>回复评论：${escapeHtml(item.replyCommentText || "-")}</p>
+              <a href="${escapeHtml(item.href || "#")}" target="_blank" rel="noreferrer">${escapeHtml(item.href || "")}</a>
+            `;
+          }
+          els.results.appendChild(card);
+        });
+      }
+
+      const running = Boolean(status?.running);
+      els.statusHint.textContent = running ? "运行中" : "等待运行";
+      setControlsRunning(running);
+      els.statStatus.textContent = running ? "running" : "idle";
+      els.statCount.textContent = String(items.length);
+      els.statProgress.textContent = `${status?.current || 0}/${status?.total || streamMaxVideos}`;
+      els.statFailed.textContent = String(status?.failed || 0);
+      els.statSkipped.textContent = String(status?.skipped || 0);
+      els.statKeyword.textContent = status?.currentKeyword || "-";
+      els.countPill.textContent = `${items.length} 条`;
+      els.statusBody.textContent = `当前主题：${status?.currentKeyword || "-"}。当前视频：${status?.currentHref || "-"}。已完成 ${status?.completed || 0}，跳过 ${status?.skipped || 0}，失败 ${status?.failed || 0}，已检测到发送 ${status?.detectedOwnComment || 0}。`;
+    }
+
+    async function loadChromeProfiles() {
+      try {
+        const response = await fetch("/api/chrome-profiles");
+        const data = await response.json();
+        renderChromeProfiles(data.profiles || [], data.selectedProfileName);
+      } catch (error) {
+        els.chromeProfile.innerHTML = '<option value="">读取失败</option>';
+        els.statusBody.textContent = `Chrome profiles 读取失败：${error.message}`;
+      }
+    }
+
+    function startReviewStatusPolling() {
+      if (reviewPollTimer) window.clearInterval(reviewPollTimer);
+      const poll = async () => {
+        try {
+          const response = await fetch("/api/review-sequence");
+          const data = await response.json();
+          renderStatus(data);
+          if (!data.running && reviewPollTimer) {
+            window.clearInterval(reviewPollTimer);
+            reviewPollTimer = null;
+          }
+        } catch (error) {
+          els.statusBody.textContent = `队列状态读取失败：${error.message}`;
+        }
+      };
+      poll();
+      reviewPollTimer = window.setInterval(poll, 3000);
+    }
+
+    async function startReviewSequence(searchResponse, channel = "tiktok") {
+      const facebookContentType = channel === "facebook" ? getFacebookContentType() : "";
+      const items = searchResponse?.payload?.results || searchResponse?.preview || [];
+      const hrefs = items.map(item => item.href).filter(Boolean);
+      const queueHrefs = channel === "facebook"
+        ? (
+          facebookContentType === "reel"
+            ? hrefs.filter(isFacebookReelHref).slice(0, 1)
+            : hrefs.filter(isFacebookCommentableHref).slice(0, 1)
+        )
+        : hrefs.slice(0, 1);
+      if (!queueHrefs.length) return;
+      const maxVideos = channel === "facebook"
+        ? (facebookContentType === "reel" ? streamMaxVideos : facebookPostMaxItems)
+        : streamMaxVideos;
+
+      const queueResponse = await fetch("/api/review-sequence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channel,
+          facebookContentType,
+          hrefs: queueHrefs,
+          maxVideos,
+          holdMs: 5000,
+          randomHoldMs: 5000,
+          chromeProfileName: searchResponse?.chromeProfileName || "",
+          searchKeyword: searchResponse?.keyword || searchResponse?.payload?.keyword || "",
+          keywordPool: getKeywordPool(),
+        })
+      });
+      const data = await queueResponse.json();
+      els.statusBody.textContent = data.message || `已启动 ${channel} 执行队列。`;
+      startReviewStatusPolling();
+    }
+
+    async function runSearch() {
+      const channel = String(els.channel.value || "tiktok").trim().toLowerCase();
+      const facebookContentType = channel === "facebook" ? getFacebookContentType() : "";
+      const searchLimit = channel === "facebook" && facebookContentType === "post" ? facebookPostMaxItems : 1;
+      const keyword = String(els.keyword.value || "").trim();
+      const selectedProfile = getSelectedProfile();
+      if (!keyword) {
+        els.statusBody.textContent = "先输入关键词。";
+        return;
+      }
+      if (!selectedProfile) {
+        els.statusBody.textContent = "先选择一个 Chrome Profile。";
+        return;
+      }
+
+      setControlsRunning(true);
+      els.statusHint.textContent = "搜索中";
+      const channelLabel = channel === "facebook" ? `facebook/${facebookContentType}` : channel;
+      els.statusBody.textContent = `正在使用 ${formatChromeProfile(selectedProfile)} 搜索 ${channelLabel} 渠道关键词并定位入口。`;
+      els.results.innerHTML = '<div class="empty">正在搜索第一个视频入口...</div>';
+
+      try {
+        const response = await fetch("/api/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            channel,
+            facebookContentType,
+            keyword,
+            limit: searchLimit,
+            headed: els.headed.checked,
+            chromeProfileName: selectedProfile.name
+          })
+        });
+        const data = await response.json();
+        if (!data.ok) {
+          els.statusHint.textContent = "已阻塞";
+          els.statusBody.textContent = data.message || `搜索未完成：${data.status || "error"}`;
+          els.results.innerHTML = '<div class="empty">没有拿到第一个视频入口。请查看浏览器是否出现登录、验证码或地区限制。</div>';
+          return;
+        }
+        renderSearchPreview(data);
+        if (channel === "tiktok") {
+          els.statusBody.textContent = "已拿到第一个入口视频，正在启动自动评论执行队列。";
+          await startReviewSequence(data, channel);
+        } else {
+          els.statusBody.textContent = `Facebook ${facebookContentType === "reel" ? "Reel" : "普通帖子"} 搜索完成，共识别到 ${data.resultCount || data?.payload?.resultCount || 0} 条结果，正在启动自动评论队列。`;
+          await startReviewSequence(data, channel);
+        }
+      } catch (error) {
+        els.statusHint.textContent = "请求失败";
+        els.statusBody.textContent = `错误信息：${error.message}`;
+      } finally {
+        if (!reviewPollTimer) {
+          setControlsRunning(false);
+        }
+      }
+    }
+
+    async function stopReviewSequenceQueue() {
+      if (els.stopBtn.disabled) return;
+      els.statusBody.textContent = "正在请求停止队列。";
+      try {
+        const response = await fetch("/api/review-sequence/stop", { method: "POST" });
+        const data = await response.json();
+        els.statusBody.textContent = data.message || "已请求停止队列。";
+        startReviewStatusPolling();
+      } catch (error) {
+        els.statusBody.textContent = `停止队列失败：${error.message}`;
+      }
+    }
+
+    function clearAll() {
+      if (reviewPollTimer) {
+        window.clearInterval(reviewPollTimer);
+        reviewPollTimer = null;
+      }
+      els.keyword.selectedIndex = 0;
+      els.draftPreview.textContent = commentDraftPreview;
+      els.headed.checked = true;
+      renderStatus({ running: false, total: streamMaxVideos, current: 0, failed: 0, completed: 0, results: [] });
+      els.statusBody.textContent = "任务启动后，这里会显示当前视频和执行状态。";
+    }
+
+    els.searchBtn.addEventListener("click", runSearch);
+    els.stopBtn.addEventListener("click", stopReviewSequenceQueue);
+    els.clearBtn.addEventListener("click", clearAll);
+    els.channel.addEventListener("change", refreshChannelOptions);
+
+    renderKeywordOptions();
+    refreshChannelOptions();
+    clearAll();
+    loadChromeProfiles();
+  </script>
+</body>
+</html>

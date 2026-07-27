@@ -1,0 +1,27 @@
+{
+  "name": "traffic-intercept-tool",
+  "version": "1.0.0",
+  "description": "Local browser-based traffic discovery and review workflow tool",
+  "main": "src/cli.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "search:web": "node src/server.js",
+    "search": "node src/cli.js",
+    "search:tiktok:web": "node src/server.js",
+    "search:tiktok": "node src/cli.js",
+    "check": "node --check src/cli.js && node --check src/search.js && node --check src/server.js && node --check src/channels/facebook.js && node --check src/channels/facebook-reels.js",
+    "test": "npm run check"
+  },
+  "keywords": [
+    "browser-automation",
+    "content-discovery",
+    "playwright",
+    "social-search"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "playwright": "^1.61.1"
+  }
+}

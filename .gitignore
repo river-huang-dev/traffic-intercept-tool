@@ -1,0 +1,19 @@
+.DS_Store
+.codex/
+
+# Dependencies
+node_modules/
+
+# Runtime data and browser state
+data/
+*.log
+*.pid
+
+# Environment and local overrides
+.env
+.env.*
+!.env.example
+
+# OS/editor
+.vscode/
+.idea/
