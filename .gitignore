@@ -6,6 +6,7 @@ node_modules/
 
 # Runtime data and browser state
 data/
+browser-profile/
 *.log
 *.pid
 
@@ -13,6 +14,21 @@ data/
 .env
 .env.*
 !.env.example
+
+# Credentials and local secrets
+secrets/
+credentials/
+service-account.json
+*-service-account.json
+*service*account*.json
+*.pem
+*.p12
+*.p8
+*.key
+*.crt
+*.cer
+id_rsa*
+id_ed25519*
 
 # OS/editor
 .vscode/
