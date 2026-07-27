@@ -29,7 +29,7 @@ For Facebook, pass `facebookContentType` as `post` or `reels`.
 
 ## `POST /api/review-sequence`
 
-Starts a browser review sequence for selected result URLs.
+Starts an automated browser review/comment sequence for selected result URLs.
 
 ```json
 {
@@ -43,11 +43,11 @@ Starts a browser review sequence for selected result URLs.
 
 ## `GET /api/review-sequence`
 
-Returns the active review sequence state.
+Returns the active review/comment sequence state, including progress, completed items, skipped items, failures, detected existing comments, and per-result send verification.
 
 ## `POST /api/review-sequence/stop`
 
-Stops the active review sequence.
+Stops the active review/comment sequence.
 
 ## `POST /api/debug/video-navigation`
 

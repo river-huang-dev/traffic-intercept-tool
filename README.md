@@ -1,6 +1,6 @@
 # Traffic Intercept Tool
 
-Local browser-based discovery and review tool for TikTok and Facebook content workflows. It provides a small web UI, a CLI, and Playwright-powered platform adapters for keyword search, result extraction, and manual review sequences.
+Local browser-based discovery, review, and automated comment workflow tool for TikTok and Facebook content operations. It provides a small web UI, a CLI, and Playwright-powered platform adapters for keyword search, result extraction, comment queue execution, and status verification.
 
 ## Features
 
@@ -8,7 +8,8 @@ Local browser-based discovery and review tool for TikTok and Facebook content wo
 - TikTok and Facebook adapters.
 - Chrome profile reuse for sessions that require login.
 - JSON/CSV/screenshot exports for local analysis.
-- Review sequence controls for stepping through selected results.
+- Automated comment queues for TikTok videos, Facebook Reels, and Facebook posts.
+- Review sequence controls, stop controls, per-item status, and sent-comment verification.
 
 ## Requirements
 
@@ -61,6 +62,14 @@ npm run search:web
 
 The server listens on `127.0.0.1:4318` unless `PORT` is set.
 
+The main web UI can run a search and then start an automated comment queue:
+
+- TikTok: starts from an entry video, opens the comment panel, replies to a top-liked comment when available, sends the main comment, and continues through the stream.
+- Facebook Reels: searches reels, opens each result, replies where applicable, sends the main comment, and records status.
+- Facebook posts: searches post results and sends the main comment on each eligible post.
+
+The separate `public/comment-draft-tool.html` page is only a draft-generation workspace and does not send comments by itself.
+
 ## Browser Login
 
 Some platforms require manual login or captcha verification. Prefer first-party login in the opened browser window. Google login can reject automated browsers with messages such as `This browser or app may not be secure`.
@@ -98,7 +107,7 @@ npm test
 
 ## Responsible Use
 
-Use this tool only for workflows you are authorized to perform. Do not use it to bypass access controls, collect credentials, spam platforms, or publish private data.
+Use this tool only for workflows you are authorized to perform. Automated commenting can affect real third-party platforms and accounts. Do not use it to bypass access controls, collect credentials, spam platforms, impersonate users, or publish private data.
 
 ## License
 
