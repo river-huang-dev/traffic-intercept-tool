@@ -2,6 +2,11 @@
 
 Local browser-based discovery, review, and automated comment workflow tool for TikTok and Facebook content operations. It provides a small web UI, a CLI, and Playwright-powered platform adapters for keyword search, result extraction, comment queue execution, and status verification.
 
+## Live Deployments
+
+- Overseas node (Singapore, GPT/Gemini available): http://traffic.riverhuang.me/
+- Mainland China node (Chengdu, IP access): http://8.137.52.73:4318/
+
 ## Features
 
 - Keyword search from a local web UI or CLI.
